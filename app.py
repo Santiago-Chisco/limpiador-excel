@@ -2,6 +2,8 @@
 
 Ejecutar:  streamlit run app.py
 """
+import hmac
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -10,6 +12,31 @@ import streamlit as st
 import cleaner
 
 st.set_page_config(page_title="Limpiador de Excel", page_icon="🧹", layout="wide")
+
+
+def require_login() -> None:
+    """Pide usuario y contraseña si APP_PASSWORD está definida (uso en la nube)."""
+    password = os.environ.get("APP_PASSWORD")
+    if not password:
+        return  # sin contraseña configurada (uso local): no pide login
+    user = os.environ.get("APP_USER", "admin")
+    if st.session_state.get("autenticado"):
+        return
+    st.title("🔒 Limpiador de Excel")
+    with st.form("login"):
+        u = st.text_input("Usuario")
+        p = st.text_input("Contraseña", type="password")
+        ok = st.form_submit_button("Entrar")
+    if ok:
+        if hmac.compare_digest(u, user) and hmac.compare_digest(p, password):
+            st.session_state["autenticado"] = True
+            st.rerun()
+        else:
+            st.error("Usuario o contraseña incorrectos.")
+    st.stop()
+
+
+require_login()
 st.title("🧹 Limpiador de Excel")
 st.caption("Sube tu archivo, elimina filas vacías y duplicados, y descarga el resultado limpio.")
 

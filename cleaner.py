@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import csv
 import io
+import os
 from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 
-DAMAGED_DIR = Path("excel_danados")
+# En Render se apunta a un disco persistente con la variable DAMAGED_DIR
+DAMAGED_DIR = Path(os.environ.get("DAMAGED_DIR", "excel_danados"))
 LOG_FILE = DAMAGED_DIR / "registro.csv"
 
 
@@ -125,7 +127,7 @@ def _autofit(ws, df: pd.DataFrame) -> None:
 
 # ------------------------------------------------------ archivos dañados
 def save_damaged(file_bytes: bytes, filename: str, reason: str) -> Path:
-    DAMAGED_DIR.mkdir(exist_ok=True)
+    DAMAGED_DIR.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     safe = Path(filename).name
     dest = DAMAGED_DIR / f"{stamp}_{safe}"
